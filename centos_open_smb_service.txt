@@ -1,0 +1,44 @@
+一、安装smb
+首先我将解释安装Samba和匿名共享的方法。安装Samba运行	
+yum install samba samba-client samba-common
+
+二、配置smb.conf
+安装之后请备份一份原始的Samba配置文件：
+1
+mv /etc/samba/smb.conf /etc/samba/smb.conf.bak
+然后来新建我们的conf文件:
+vi /etc/samba/smb.conf
+ 
+[global]
+workgroup = WORKGROUP
+server string = Samba Server %v
+netbios name = centos
+security = user
+map to guest = bad user
+dns proxy = no
+#============================ Share Definitions ============================== 
+[Anonymous]
+path = /samba/anonymous
+browsable =yes
+writable = yes
+guest ok = yes
+read only = no
+ 
+三、重启smb service
+mkdir -p /samba/anonymous
+systemctl enable smb.service
+systemctl enable nmb.service
+systemctl restart smb.service
+systemctl restart nmb.service
+
+四、关闭防火墙
+在下面CentOs7的防火墙cmd会阻止Samba的访问，为了摆脱这个，我们运行：
+[root@server1 ~]# firewall-cmd --permanent --zone=public --add-service=samba
+success
+[root@server1 ~]#
+[root@server1 ~]# firewall-cmd --reload
+success
+[root@server1 ~]#
+
+五、开读权限
+setsebool -P samba_export_all_rw on
